@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const express = require('express');
+const router = express.Router();
 
 // User login
 router.post('/login', async (req, res) => {
