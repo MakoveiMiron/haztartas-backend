@@ -6,6 +6,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // User registration
 router.post('/register', async (req, res) => {
+    console.log(req.body)
     const { username, password, isAdmin } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
@@ -19,6 +20,7 @@ router.post('/register', async (req, res) => {
 // User login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
+    console.log(req.body)
     try {
         const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (user.rows.length > 0 && await bcrypt.compare(password, user.rows[0].password)) {
