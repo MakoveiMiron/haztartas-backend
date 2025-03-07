@@ -11,14 +11,17 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
         console.log("minden ok")
-        console.log("pool", pool)
-        await pool.query('INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3)', [username, hashedPassword, isAdmin || false]);
+        console.log("pool", pool)  // Ezt az értéket ellenőrizd, hogy nem undefined vagy null
+        const result = await pool.query('INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3)', [username, hashedPassword, isAdmin || false]);
         console.log("minden ok")
+        console.log(result) // Az insert lekérdezés eredménye, hogy megtudjuk, mi történt pontosan
         res.status(201).send('User created');
     } catch (err) {
+        console.error('Error registering user:', err);  // A hiba pontos naplózása
         res.status(500).send('Error registering user');
     }
 });
+
 
 // User login
 router.post('/login', async (req, res) => {
