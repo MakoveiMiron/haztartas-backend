@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: process.env.Postgres.DATABASE_URL });
 
 // Get user tasks (admin can see all, regular users see only theirs)
 router.get('/', async (req, res) => {
