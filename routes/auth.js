@@ -23,6 +23,7 @@ router.post('/login', async (req, res) => {
     console.log(req.body)
     try {
         const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        console.log(user)
         if (user.rows.length > 0 && await bcrypt.compare(password, user.rows[0].password)) {
             req.session.user = { id: user.rows[0].id, isAdmin: user.rows[0].is_admin };
             res.send('Login successful');
