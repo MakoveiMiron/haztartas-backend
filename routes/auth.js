@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.Postgres.DATABASE_URL });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // User registration
 router.post('/register', async (req, res) => {
