@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); 
 const session = require('express-session');
 const { Pool } = require('pg');
 require('dotenv').config();
@@ -8,6 +9,12 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }  // Railway PostgreSQL SSL beállítás
 });
+
+app.use(cors({
+    origin: 'https://makoveimiron.github.io',  // A frontend domain, amelyről a kéréseket engedélyezzük
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Az engedélyezett HTTP metódusok
+    credentials: true  // Ha session cookie-kat használsz, engedélyezd a hitelesítést
+}));
 
 // Middleware-ek
 app.use(express.json());
