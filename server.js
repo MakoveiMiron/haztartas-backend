@@ -3,6 +3,8 @@ const session = require('express-session');
 const pg = require('pg');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
+const cors = require('cors');
+app.use(cors());
 require('dotenv').config();
 
 const app = express();
