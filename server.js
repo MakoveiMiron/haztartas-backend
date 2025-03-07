@@ -6,7 +6,10 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const app = express();
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
+    } });
 
 app.use(express.json());
 app.use(session({

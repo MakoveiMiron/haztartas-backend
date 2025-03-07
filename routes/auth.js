@@ -2,7 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
+    } });
 
 // User registration
 router.post('/register', async (req, res) => {

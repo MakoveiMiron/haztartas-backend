@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
+    } });
 
 // Get user tasks (admin can see all, regular users see only theirs)
 router.get('/', async (req, res) => {
