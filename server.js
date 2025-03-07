@@ -1,7 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const pg = require('pg');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 require('dotenv').config();
 
