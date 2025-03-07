@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
                 username: user.rows[0].username,
                 isAdmin: user.rows[0].is_admin
             };
-            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }); // 1 órás token
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30000d' }); // 1 órás token
             res.json({ token }); // Token visszaküldése a frontendnek
         } else {
             res.status(401).send('Invalid credentials');
@@ -29,8 +29,5 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.get('/', (req, res) => {
-    res.send('Háztartás Todo API működik 🚀');
-});
 
 module.exports = router;
