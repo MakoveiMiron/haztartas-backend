@@ -29,4 +29,8 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.get('/', (req, res) => {
+    res.send('Háztartás Todo API működik 🚀');
+});
+
 module.exports = router;
