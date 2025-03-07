@@ -1,47 +1,54 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
-    } });
 
-// Get user tasks (admin can see all, regular users see only theirs)
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+// 🔹 Feladatok lekérése (admin lát mindent, user csak a sajátját)
 router.get('/', async (req, res) => {
     if (!req.session.user) return res.status(403).send('Not authorized');
     const userId = req.session.user.id;
 
     try {
-        // Admin can see all tasks, regular users can only see their tasks
-        const tasks = req.session.user.isAdmin ?
-            await pool.query('SELECT * FROM tasks') :
-            await pool.query('SELECT * FROM tasks t JOIN user_tasks ut ON t.id = ut.task_id WHERE ut.user_id = $1', [userId]);
-        
+        const tasks = req.session.user.isAdmin
+            ? await pool.query('SELECT * FROM tasks')
+            : await pool.query(`
+                SELECT t.id, t.name, t.description, t.frequency, ut.completed, ut.days 
+                FROM tasks t 
+                JOIN user_tasks ut ON t.id = ut.task_id 
+                WHERE ut.user_id = $1`, [userId]);
+
         res.json(tasks.rows);
     } catch (err) {
         res.status(500).send('Error fetching tasks');
     }
 });
 
-// Mark task as complete (user or admin)
+// 🔹 Feladat elvégzésének megjelölése
 router.put('/complete/:taskId', async (req, res) => {
     if (!req.session.user) return res.status(403).send('Not authorized');
     const userId = req.session.user.id;
     const taskId = req.params.taskId;
 
     try {
-        // Check if the user is assigned to the task
-        const taskAssignment = await pool.query('SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2', [userId, taskId]);
+        const taskAssignment = await pool.query(
+            'SELECT * FROM user_tasks WHERE user_id = $1 AND task_id = $2',
+            [userId, taskId]
+        );
 
         if (taskAssignment.rows.length === 0) return res.status(400).send('Task not assigned to user');
 
-        // Update the task completion status
-        await pool.query('UPDATE user_tasks SET completed = TRUE WHERE user_id = $1 AND task_id = $2', [userId, taskId]);
+        await pool.query('UPDATE user_tasks SET completed = TRUE WHERE user_id = $1 AND task_id = $2', 
+            [userId, taskId]);
 
-        // Check if any other user is assigned to the task
-        const otherUserAssignments = await pool.query('SELECT * FROM user_tasks WHERE task_id = $1 AND completed = FALSE', [taskId]);
+        const otherUserAssignments = await pool.query(
+            'SELECT * FROM user_tasks WHERE task_id = $1 AND completed = FALSE',
+            [taskId]
+        );
 
-        // If all users have completed the task, mark the task as fully completed
         if (otherUserAssignments.rows.length === 0) {
             await pool.query('UPDATE tasks SET completed = TRUE WHERE id = $1', [taskId]);
         }
@@ -52,16 +59,23 @@ router.put('/complete/:taskId', async (req, res) => {
     }
 });
 
-// Create task (admin only)
+// 🔹 Új feladat létrehozása (csak admin)
 router.post('/', async (req, res) => {
     if (!req.session.user || !req.session.user.isAdmin) return res.status(403).send('Not authorized');
+
     const { name, description, frequency, assignedUsers, days } = req.body;
-    
+
     try {
-        const task = await pool.query('INSERT INTO tasks (name, description, frequency) VALUES ($1, $2, $3) RETURNING id', [name, description, frequency]);
+        const task = await pool.query(
+            'INSERT INTO tasks (name, description, frequency) VALUES ($1, $2, $3) RETURNING id',
+            [name, description, frequency]
+        );
 
         for (let userId of assignedUsers) {
-            await pool.query('INSERT INTO user_tasks (user_id, task_id, days) VALUES ($1, $2, $3)', [userId, task.rows[0].id, days]);
+            await pool.query(
+                'INSERT INTO user_tasks (user_id, task_id, days) VALUES ($1, $2, $3)',
+                [userId, task.rows[0].id, days]
+            );
         }
 
         res.status(201).send('Task created');
@@ -70,7 +84,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Admin: Get all users' progress
+// 🔹 Admin: Felhasználók előrehaladásának lekérése
 router.get('/admin/progress', async (req, res) => {
     if (!req.session.user || !req.session.user.isAdmin) return res.status(403).send('Not authorized');
 
@@ -89,21 +103,18 @@ router.get('/admin/progress', async (req, res) => {
     }
 });
 
-// Admin: Get tasks due after 8 PM today (for reminder purposes)
+// 🔹 Admin: 8 után ki nem végzett feladatok listája
 router.get('/admin/reminder', async (req, res) => {
     if (!req.session.user || !req.session.user.isAdmin) return res.status(403).send('Not authorized');
-    
-    const currentDate = new Date();
-    currentDate.setHours(20, 0, 0, 0);  // 8 PM today
-    
+
     try {
         const incompleteTasks = await pool.query(`
             SELECT u.name AS user_name, t.name AS task_name
             FROM user_tasks ut
             JOIN users u ON ut.user_id = u.id
             JOIN tasks t ON ut.task_id = t.id
-            WHERE ut.completed = FALSE AND ut.days @> $1 AND CURRENT_DATE = ut.due_date
-        `, [currentDate]);
+            WHERE ut.completed = FALSE AND CURRENT_TIME >= '20:00:00'
+        `);
 
         res.json(incompleteTasks.rows);
     } catch (err) {
@@ -111,10 +122,10 @@ router.get('/admin/reminder', async (req, res) => {
     }
 });
 
-// Admin: Get tasks for the current week
+// 🔹 Admin: Heti nézet lekérése
 router.get('/admin/week', async (req, res) => {
     if (!req.session.user || !req.session.user.isAdmin) return res.status(403).send('Not authorized');
-    
+
     try {
         const currentWeek = await pool.query(`
             SELECT * FROM tasks
@@ -127,18 +138,15 @@ router.get('/admin/week', async (req, res) => {
     }
 });
 
-// Admin: Reset tasks for the new week
+// 🔹 Admin: Heti feladatok visszaállítása
 router.post('/admin/reset-week', async (req, res) => {
     if (!req.session.user || !req.session.user.isAdmin) return res.status(403).send('Not authorized');
-    
-    const currentWeekStart = new Date();
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay()); // Set to Sunday midnight
 
     try {
         await pool.query(`
             UPDATE user_tasks SET completed = FALSE
-            WHERE due_date >= $1 AND due_date < $2
-        `, [currentWeekStart, new Date()]);
+            WHERE CURRENT_DATE >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer)
+        `);
 
         res.status(200).send('Week reset completed');
     } catch (err) {

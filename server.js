@@ -1,30 +1,37 @@
 const express = require('express');
 const session = require('express-session');
-const pg = require('pg');
-const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
-const pool = new Pool({connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
-    } });
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }  // Railway PostgreSQL SSL beállítás
+});
 
+// Middleware-ek
 app.use(express.json());
+app.use(helmet()); // Biztonsági fejlécek
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true } // Change to true if using HTTPS
+    cookie: { secure: process.env.NODE_ENV === 'production' } // HTTPS csak production módban
 }));
 
-// Routes (authentication, task management, etc.)
-app.use('/auth', require('./routes/auth'));
-app.use('/tasks', require('./routes/tasks'));
+// API útvonalak
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/tasks', require('./routes/tasks'));
 
+// Egyszerű ellenőrző végpont
+app.get('/', (req, res) => {
+    res.send('Háztartás Todo API működik 🚀');
+});
+
+// Port beállítása és indítása
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
 
-// Export app for testing
 module.exports = app;
