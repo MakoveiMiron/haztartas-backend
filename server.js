@@ -1,7 +1,6 @@
 const express = require('express');
 const session = require('express-session');
 const { Pool } = require('pg');
-const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
@@ -12,8 +11,6 @@ const pool = new Pool({
 
 // Middleware-ek
 app.use(express.json());
-app.use(helmet()); // Biztonsági fejlécek
-
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
