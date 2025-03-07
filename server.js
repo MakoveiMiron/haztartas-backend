@@ -13,7 +13,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Change to true if using HTTPS
+    cookie: { secure: true } // Change to true if using HTTPS
 }));
 
 // Routes (authentication, task management, etc.)
