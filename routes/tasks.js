@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_PUBLIC_URL,
+const pool = new Pool({ connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false  // This is required by Railway to establish an SSL connection.
     } });
