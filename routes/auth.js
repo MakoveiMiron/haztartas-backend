@@ -2,6 +2,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const express = require('express');
 const router = express.Router();
+const { Pool } = require('pg');
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
 // User login
 router.post('/login', async (req, res) => {
@@ -23,3 +28,5 @@ router.post('/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
+
+module.exports = router;
