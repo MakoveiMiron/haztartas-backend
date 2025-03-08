@@ -107,8 +107,9 @@ router.get('/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
       const result = await pool.query(
-          `SELECT t.* FROM tasks t
-          INNER JOIN user_tasks ut ON t.id = ut.task_id
+          `SELECT t.id, t.name, t.description, t.frequency 
+          FROM tasks t
+          JOIN user_tasks ut ON t.id = ut.task_id
           WHERE ut.user_id = $1`,
           [userId]
       );
