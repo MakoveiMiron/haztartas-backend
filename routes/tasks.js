@@ -102,6 +102,23 @@ router.delete('/:taskId', async (req, res) => {
   }
 });
 
+// API route for fetching tasks assigned to a specific user
+router.get('/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+      const result = await pool.query(
+          `SELECT t.* FROM tasks t
+          INNER JOIN user_tasks ut ON t.id = ut.task_id
+          WHERE ut.user_id = $1`,
+          [userId]
+      );
+      res.status(200).json(result.rows);
+  } catch (err) {
+      console.error(err);
+      res.status(500).send('Error fetching user tasks');
+  }
+});
+
 // API route for updating a task
 router.put('/:taskId', async (req, res) => {
   const { name, assignedUsers, frequency, days } = req.body;
