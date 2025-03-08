@@ -57,8 +57,10 @@ router.post('/login', async (req, res) => {
                 username: user.rows[0].username,
                 isAdmin: user.rows[0].is_admin
             };
-            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30000d' }); // 1 órás token
-            res.json({ token }); // Token visszaküldése a frontendnek
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30000d' });
+
+            // Send the token and user data in the response
+            res.json({ token, user: payload });
         } else {
             res.status(401).send('Invalid credentials');
         }
