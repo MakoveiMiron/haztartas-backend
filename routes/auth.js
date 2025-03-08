@@ -13,23 +13,19 @@ router.post('/register', async (req, res) => {
     const { username, password, isAdmin } = req.body;
 
     try {
-        // Ellenőrizzük, hogy létezik-e már ilyen felhasználó
         const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (existingUser.rows.length > 0) {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        // Jelszó hashelése
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Új felhasználó mentése az adatbázisba
         const newUser = await pool.query(
             'INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3) RETURNING id, username, is_admin',
-            [username, hashedPassword, isAdmin || false] // Alapból nem admin
+            [username, hashedPassword, isAdmin || false]
         );
 
-        // JWT token generálása a frissen regisztrált felhasználónak
         const payload = {
             id: newUser.rows[0].id,
             username: newUser.rows[0].username,
@@ -45,7 +41,6 @@ router.post('/register', async (req, res) => {
     }
 });
 
-
 // User login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -59,7 +54,6 @@ router.post('/login', async (req, res) => {
             };
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30000d' });
 
-            // Send the token and user data in the response
             res.json({ token, user: payload });
         } else {
             res.status(401).send('Invalid credentials');
@@ -68,6 +62,5 @@ router.post('/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
-
 
 module.exports = router;

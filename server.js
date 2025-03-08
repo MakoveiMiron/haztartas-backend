@@ -1,33 +1,39 @@
 const express = require('express');
-const cors = require('cors'); 
-const session = require('express-session');
+const cors = require('cors');
 const { Pool } = require('pg');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }  // Railway PostgreSQL SSL beállítás
+    ssl: { rejectUnauthorized: false }
 });
 
+// Middleware-ek
 app.use(cors({
-    origin: 'https://makoveimiron.github.io',  // A frontend domain, amelyről a kéréseket engedélyezzük
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Az engedélyezett HTTP metódusok
-    credentials: true  // Ha session cookie-kat használsz, engedélyezd a hitelesítést
+    origin: 'https://makoveimiron.github.io',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
 }));
 
-// Middleware-ek
 app.use(express.json());
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production' } // HTTPS csak production módban
-}));
+
+// JWT authentikáció middleware
+function authenticateJWT(req, res, next) {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).send('Access Denied');
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).send('Invalid Token');
+        req.user = user;
+        next();
+    });
+}
 
 // API útvonalak
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/tasks', authenticateJWT, require('./routes/tasks'));
 
 // Egyszerű ellenőrző végpont
 app.get('/', (req, res) => {
