@@ -1,5 +1,9 @@
 const express = require('express');
-const pool = require('./db'); // Make sure to import your database connection
+const { Pool } = require('pg');
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 const router = express.Router();
 
 // API route for fetching all tasks
