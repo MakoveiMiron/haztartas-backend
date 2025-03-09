@@ -1,3 +1,4 @@
+-- Users Table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
@@ -5,22 +6,18 @@ CREATE TABLE users (
     is_admin BOOLEAN DEFAULT FALSE
 );
 
+-- Tasks Table
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
-    frequency INTEGER NOT NULL -- Ez most a napok száma marad
+    days TEXT[] -- Array of days (e.g., 'Monday', 'Tuesday', etc.)
 );
 
+-- Junction Table for User-Task Relationships (Many-to-Many)
 CREATE TABLE user_tasks (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    task_id INTEGER REFERENCES tasks(id)
-);
-
--- 🔥 Új táblázat a napok tárolására
-CREATE TABLE task_days (
-    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
-    day TEXT NOT NULL CHECK (day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
+    UNIQUE(user_id, task_id) -- Ensures a user is only assigned to a task once
 );
