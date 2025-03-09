@@ -120,6 +120,20 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
+// API route for fetching all users
+router.get('/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM users');
+    const users = result.rows;
+
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching users');
+  }
+});
+
+
 // API route for updating a task
 router.put('/:taskId', async (req, res) => {
   const { name, assignedUsers, frequency, days } = req.body;
