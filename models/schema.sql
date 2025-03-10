@@ -10,8 +10,8 @@ CREATE TABLE users (
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    description TEXT,
-    days TEXT[] -- Array of days (e.g., 'Monday', 'Tuesday', etc.)
+    days TEXT[], -- Array of days (e.g., 'Monday', 'Tuesday', etc.)
+    is_completed BOOLEAN DEFAULT FALSE -- Tracks if the task is completed
 );
 
 -- Junction Table for User-Task Relationships (Many-to-Many)
