@@ -59,13 +59,13 @@ router.get('/:taskId', async (req, res) => {
 
 // API route for creating a task
 router.post('/', async (req, res) => {
-  const { name, description, assignedUsers, days } = req.body;
+  const { name, assignedUsers, days } = req.body;
 
   try {
     // Insert new task into tasks table
     const result = await pool.query(
-      'INSERT INTO tasks (name, description, days) VALUES ($1, $2, $3) RETURNING id',
-      [name, description, days]
+      'INSERT INTO tasks (name, days) VALUES ($1, $2) RETURNING id',
+      [name, days]
     );
     const taskId = result.rows[0].id;
 
@@ -107,7 +107,7 @@ router.get('/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
       const result = await pool.query(
-          `SELECT t.id, t.name, t.description, t.days
+          `SELECT t.id, t.name, t.days
           FROM tasks t
           JOIN user_tasks ut ON t.id = ut.task_id
           WHERE ut.user_id = $1`,
@@ -135,14 +135,14 @@ router.get('/users', async (req, res) => {
 
 // API route for updating a task
 router.put('/:taskId', async (req, res) => {
-  const { name, description, assignedUsers, days } = req.body;
+  const { name, assignedUsers, days } = req.body;
   const taskId = req.params.taskId;
 
   try {
     // Update the task
     await pool.query(
-      'UPDATE tasks SET name = $1, description = $2, days = $3 WHERE id = $4',
-      [name, description, days, taskId]
+      'UPDATE tasks SET name = $1, days = $2 WHERE id = $3',
+      [name, days, taskId]
     );
 
     // Update user-task assignments
