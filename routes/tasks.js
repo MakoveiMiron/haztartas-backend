@@ -107,7 +107,7 @@ router.get('/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
       const result = await pool.query(
-          `SELECT t.id, t.name, t.days
+          `SELECT t.id, t.name, t.days, t.is_completed
           FROM tasks t
           JOIN user_tasks ut ON t.id = ut.task_id
           WHERE ut.user_id = $1`,
