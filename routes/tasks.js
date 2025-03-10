@@ -165,7 +165,7 @@ router.get('/get/:userId', async (req, res) => {
 
 
 // API route for fetching all users
-router.get('/get/users', async (req, res) => {
+router.get('/fetch/users', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users');
     const users = result.rows;
