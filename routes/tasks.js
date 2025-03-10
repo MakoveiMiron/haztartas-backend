@@ -232,7 +232,7 @@ router.get('/progress/all-users', async (req, res) => {
 router.put('/update/:taskId', async (req, res) => {
   const { name, assignedUsers, days } = req.body;
   const taskId = req.params.taskId;
-
+  console.log("assignedUsers",assignedUsers)
   try {
     // Update the task
     await pool.query(
@@ -246,6 +246,7 @@ router.put('/update/:taskId', async (req, res) => {
 
     // Add new assignments
     assignedUsers.forEach(async (userId) => {
+      console.log("userId",userId)
       await pool.query(
         'INSERT INTO user_tasks (user_id, task_id) VALUES ($1, $2)',
         [userId, taskId]
