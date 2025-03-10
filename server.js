@@ -11,8 +11,11 @@ const pool = new Pool({
 });
 
 // Middleware-ek
-app.use(cors());
-
+app.use(cors({
+    origin: 'https://makoveimiron.github.io',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 
