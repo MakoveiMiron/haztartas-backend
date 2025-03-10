@@ -177,6 +177,59 @@ router.get('/fetch/users', async (req, res) => {
   }
 });
 
+// API route for fetching tasks assigned to all users with progress
+router.get('/all-users', async (req, res) => {
+  try {
+    // Fetch all users
+    const usersResult = await pool.query('SELECT id, username FROM users');
+    const users = usersResult.rows;
+
+    // Fetch all tasks with progress for each user
+    const usersWithTasks = await Promise.all(users.map(async (user) => {
+      const tasksResult = await pool.query(
+        `SELECT t.id, t.name, t.days,
+                tp.day, tp.is_completed as day_completed
+         FROM tasks t
+         JOIN user_tasks ut ON t.id = ut.task_id
+         LEFT JOIN task_progress tp ON t.id = tp.task_id
+         WHERE ut.user_id = $1`,
+        [user.id]
+      );
+
+      // Organizing tasks with their progress
+      const tasks = tasksResult.rows.reduce((acc, row) => {
+        const taskId = row.id;
+
+        if (!acc[taskId]) {
+          acc[taskId] = {
+            id: taskId,
+            name: row.name,
+            days: row.days,
+            progress: {} // Initialize an empty progress object
+          };
+        }
+
+        // Store progress for each day
+        acc[taskId].progress[row.day] = row.day_completed;
+
+        return acc;
+      }, {});
+
+      return {
+        userId: user.id,
+        username: user.username,
+        tasks: Object.values(tasks),
+      };
+    }));
+
+    res.status(200).json(usersWithTasks);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching tasks for all users');
+  }
+});
+
+
 // API route for updating a task
 router.put('/:taskId', async (req, res) => {
   const { name, assignedUsers, days } = req.body;
