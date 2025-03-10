@@ -103,7 +103,7 @@ router.delete('/:taskId', async (req, res) => {
 });
 
 // API route for fetching tasks assigned to a specific user
-router.get('/:userId', async (req, res) => {
+router.get('/get/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
       const result = await pool.query(
