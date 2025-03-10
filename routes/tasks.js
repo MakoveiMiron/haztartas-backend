@@ -178,7 +178,7 @@ router.get('/fetch/users', async (req, res) => {
 });
 
 // API route for fetching tasks assigned to all users with progress
-router.get('/all-users', async (req, res) => {
+router.get('/progress/all-users', async (req, res) => {
   try {
     // Fetch all users
     const usersResult = await pool.query('SELECT id, username FROM users');
