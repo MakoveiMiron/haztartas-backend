@@ -229,7 +229,7 @@ router.get('/progress/all-users', async (req, res) => {
 });
 
 // API route for updating a task
-router.put('/:taskId', async (req, res) => {
+router.put('/update/:taskId', async (req, res) => {
   const { name, assignedUsers, days } = req.body;
   const taskId = req.params.taskId;
 
