@@ -217,6 +217,29 @@ router.put('/:taskId', async (req, res) => {
   }
 });
 
+// API route for marking a task as completed
+router.put('/complete/:taskId', async (req, res) => {
+  const taskId = req.params.taskId;
+
+  try {
+    // Update the task status to completed
+    const result = await pool.query(
+      'UPDATE tasks SET is_completed = $1 WHERE id = $2',
+      [true, taskId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Task not found');
+    }
+
+    res.status(200).send('Task marked as completed');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error marking task as completed');
+  }
+});
+
+
 // API route for updating task progress (marking a task as completed for a specific day)
 router.put('/progress/:taskId', async (req, res) => {
   const { day, is_completed } = req.body; // Expecting day and completion status (true/false)
