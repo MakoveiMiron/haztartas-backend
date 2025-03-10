@@ -163,7 +163,6 @@ router.get('/get/:userId', async (req, res) => {
   }
 });
 
-
 // API route for fetching all users
 router.get('/fetch/users', async (req, res) => {
   try {
@@ -229,7 +228,6 @@ router.get('/progress/all-users', async (req, res) => {
   }
 });
 
-
 // API route for updating a task
 router.put('/:taskId', async (req, res) => {
   const { name, assignedUsers, days } = req.body;
@@ -289,34 +287,6 @@ router.put('/complete/:taskId', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Error marking task as completed');
-  }
-});
-
-
-// API route for updating task progress (marking a task as completed for a specific day)
-router.put('/progress/:taskId', async (req, res) => {
-  const { day, is_completed } = req.body; // Expecting day and completion status (true/false)
-  const taskId = req.params.taskId;
-
-  try {
-    // Update the task progress for a specific day
-    const result = await pool.query(
-      'UPDATE task_progress SET is_completed = $1 WHERE task_id = $2 AND day = $3',
-      [is_completed, taskId, day]
-    );
-
-    if (result.rowCount === 0) {
-      // If no row was updated, it means the task progress for this day does not exist, so create it
-      await pool.query(
-        'INSERT INTO task_progress (task_id, day, is_completed) VALUES ($1, $2, $3)',
-        [taskId, day, is_completed]
-      );
-    }
-
-    res.status(200).send('Task progress updated');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error updating task progress');
   }
 });
 
