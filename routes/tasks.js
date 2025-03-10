@@ -50,6 +50,13 @@ router.get('/:taskId', async (req, res) => {
     );
     task.assignedUsers = usersResult.rows.map(user => user.username);
 
+    // Fetching task progress for each day
+    const progressResult = await pool.query(
+      'SELECT * FROM task_progress WHERE task_id = $1',
+      [taskId]
+    );
+    task.progress = progressResult.rows;
+
     res.status(200).json(task);
   } catch (err) {
     console.error(err);
@@ -77,6 +84,14 @@ router.post('/', async (req, res) => {
       );
     });
 
+    // Insert task progress for each day
+    days.forEach(async (day) => {
+      await pool.query(
+        'INSERT INTO task_progress (task_id, day, is_completed) VALUES ($1, $2, $3)',
+        [taskId, day, false]  // By default, the task is not completed
+      );
+    });
+
     res.status(201).send('Task created');
   } catch (err) {
     console.error(err);
@@ -89,6 +104,9 @@ router.delete('/:taskId', async (req, res) => {
   const taskId = req.params.taskId;
 
   try {
+    // Delete task progress first
+    await pool.query('DELETE FROM task_progress WHERE task_id = $1', [taskId]);
+
     // Delete task from user_tasks (which assigns users to tasks)
     await pool.query('DELETE FROM user_tasks WHERE task_id = $1', [taskId]);
 
@@ -106,17 +124,17 @@ router.delete('/:taskId', async (req, res) => {
 router.get('/get/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
-      const result = await pool.query(
-          `SELECT t.id, t.name, t.days, t.is_completed
-          FROM tasks t
-          JOIN user_tasks ut ON t.id = ut.task_id
-          WHERE ut.user_id = $1`,
-          [userId]
-      );
-      res.status(200).json(result.rows);
+    const result = await pool.query(
+      `SELECT t.id, t.name, t.days, t.is_completed
+      FROM tasks t
+      JOIN user_tasks ut ON t.id = ut.task_id
+      WHERE ut.user_id = $1`,
+      [userId]
+    );
+    res.status(200).json(result.rows);
   } catch (err) {
-      console.error(err);
-      res.status(500).send('Error fetching user tasks');
+    console.error(err);
+    res.status(500).send('Error fetching user tasks');
   }
 });
 
@@ -157,10 +175,46 @@ router.put('/:taskId', async (req, res) => {
       );
     });
 
+    // Update task progress (for each day)
+    await pool.query('DELETE FROM task_progress WHERE task_id = $1', [taskId]); // Delete previous progress
+    days.forEach(async (day) => {
+      await pool.query(
+        'INSERT INTO task_progress (task_id, day, is_completed) VALUES ($1, $2, $3)',
+        [taskId, day, false]  // Initialize progress as false for each day
+      );
+    });
+
     res.status(200).send('Task updated');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error updating task');
+  }
+});
+
+// API route for updating task progress (marking a task as completed for a specific day)
+router.put('/progress/:taskId', async (req, res) => {
+  const { day, is_completed } = req.body; // Expecting day and completion status (true/false)
+  const taskId = req.params.taskId;
+
+  try {
+    // Update the task progress for a specific day
+    const result = await pool.query(
+      'UPDATE task_progress SET is_completed = $1 WHERE task_id = $2 AND day = $3',
+      [is_completed, taskId, day]
+    );
+
+    if (result.rowCount === 0) {
+      // If no row was updated, it means the task progress for this day does not exist, so create it
+      await pool.query(
+        'INSERT INTO task_progress (task_id, day, is_completed) VALUES ($1, $2, $3)',
+        [taskId, day, is_completed]
+      );
+    }
+
+    res.status(200).send('Task progress updated');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating task progress');
   }
 });
 

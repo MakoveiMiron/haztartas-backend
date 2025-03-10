@@ -21,3 +21,12 @@ CREATE TABLE user_tasks (
     task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
     UNIQUE(user_id, task_id) -- Ensures a user is only assigned to a task once
 );
+
+-- Task Progress Table (Track Completion of Each Day for Each Task)
+CREATE TABLE task_progress (
+    id SERIAL PRIMARY KEY,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,  -- Store the day name (e.g., 'Monday', 'Tuesday', etc.)
+    is_completed BOOLEAN DEFAULT FALSE, -- Track if the task is completed on that day
+    UNIQUE(task_id, day) -- Prevents duplicate records for a task and a day
+);
