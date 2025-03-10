@@ -120,23 +120,49 @@ router.delete('/:taskId', async (req, res) => {
   }
 });
 
-// API route for fetching tasks assigned to a specific user
+// API route for fetching tasks assigned to a specific user, including task progress
 router.get('/get/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
+    // Fetch tasks with their progress
     const result = await pool.query(
-      `SELECT t.id, t.name, t.days, t.is_completed
-      FROM tasks t
-      JOIN user_tasks ut ON t.id = ut.task_id
-      WHERE ut.user_id = $1`,
+      `SELECT t.id, t.name, t.days, t.is_completed,
+              tp.day, tp.is_completed as day_completed
+       FROM tasks t
+       JOIN user_tasks ut ON t.id = ut.task_id
+       LEFT JOIN task_progress tp ON t.id = tp.task_id
+       WHERE ut.user_id = $1`,
       [userId]
     );
-    res.status(200).json(result.rows);
+
+    // Group tasks and their progress by task id
+    const tasks = result.rows.reduce((acc, row) => {
+      const taskId = row.id;
+      
+      if (!acc[taskId]) {
+        acc[taskId] = {
+          id: taskId,
+          name: row.name,
+          days: row.days,
+          is_completed: row.is_completed,
+          progress: {} // Initialize an empty progress object
+        };
+      }
+
+      // Store the progress for each day
+      acc[taskId].progress[row.day] = row.day_completed;
+
+      return acc;
+    }, {});
+
+    // Return the tasks along with their progress
+    res.status(200).json(Object.values(tasks));
   } catch (err) {
     console.error(err);
     res.status(500).send('Error fetching user tasks');
   }
 });
+
 
 // API route for fetching all users
 router.get('/get/users', async (req, res) => {
