@@ -100,7 +100,7 @@ router.post('/', async (req, res) => {
 });
 
 // API route for deleting a task
-router.delete('/:taskId', async (req, res) => {
+router.delete('/delete/:taskId', async (req, res) => {
   const taskId = req.params.taskId;
 
   try {
