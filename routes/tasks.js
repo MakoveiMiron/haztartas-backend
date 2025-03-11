@@ -176,6 +176,29 @@ router.get('/fetch/users', async (req, res) => {
   }
 });
 
+// API route for updating the 'is_completed' status of a specific day in task progress
+router.put('/day-progress/:taskId/:day', async (req, res) => {
+  const { taskId, day } = req.params;
+
+  try {
+    // Update the task progress for the given taskId and day
+    const result = await pool.query(
+      'UPDATE task_progress SET is_completed = $1 WHERE task_id = $2 AND day = $3 RETURNING *',
+      [is_completed, taskId, day]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).send('Task progress not found for the given day');
+    }
+
+    res.status(200).send('Task progress updated successfully');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating task progress');
+  }
+});
+
+
 // API route for fetching tasks assigned to all users with progress
 router.get('/progress/all-users', async (req, res) => {
   try {
