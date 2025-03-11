@@ -184,7 +184,7 @@ router.put('/day-progress/:taskId/:day', async (req, res) => {
     // Update the task progress for the given taskId and day
     const result = await pool.query(
       'UPDATE task_progress SET is_completed = $1 WHERE task_id = $2 AND day = $3 RETURNING *',
-      [is_completed, taskId, day]
+      [true, taskId, day]
     );
 
     if (result.rowCount === 0) {
