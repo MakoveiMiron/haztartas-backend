@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
+const cron = require('node-cron'); // Import node-cron
 require('dotenv').config();
 
 const app = express();
@@ -39,6 +40,20 @@ app.use('/api/tasks', authenticateJWT, require('./routes/tasks'));
 // Egyszerű ellenőrző végpont
 app.get('/', (req, res) => {
     res.send('Háztartás Todo API működik 🚀');
+});
+
+// **Scheduled Task Reset - Runs Every Sunday at 23:00**
+cron.schedule('0 23 * * 0', async () => {
+    console.log("⏳ Resetting all task progress for a new week...");
+    try {
+        await pool.query('UPDATE task_progress SET is_completed = false');
+        console.log("✅ All task progress reset successfully!");
+    } catch (err) {
+        console.error("❌ Error resetting task progress:", err);
+    }
+}, {
+    scheduled: true,
+    timezone: "Europe/Budapest" // Adjust to your timezone
 });
 
 // Port beállítása és indítása
