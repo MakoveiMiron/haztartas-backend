@@ -277,11 +277,10 @@ router.put('/update/:taskId', async (req, res) => {
     });
 
     // Update task progress (for each day)
-    await pool.query('DELETE FROM task_progress WHERE task_id = $1', [taskId]); // Delete previous progress
     days.forEach(async (day) => {
       await pool.query(
-        'INSERT INTO task_progress (task_id, day, is_completed) VALUES ($1, $2, $3)',
-        [taskId, day, false]  // Initialize progress as false for each day
+        'INSERT INTO task_progress (day, is_completed) VALUES ($1, $2) WHERE task_id = $3',
+        [day, false, taskId]  // Initialize progress as false for each day
       );
     });
 
