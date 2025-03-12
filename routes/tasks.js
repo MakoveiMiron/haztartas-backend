@@ -284,6 +284,7 @@ router.put('/update/:taskId', async (req, res) => {
       );
     });
 
+    
     res.status(200).send('Task updated');
   } catch (err) {
     console.error(err);
