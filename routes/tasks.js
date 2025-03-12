@@ -279,7 +279,7 @@ router.put('/update/:taskId', async (req, res) => {
     // Update task progress (for each day)
     days.forEach(async (day) => {
       await pool.query(
-        'INSERT INTO task_progress (day, is_completed) VALUES ($1, $2) WHERE task_id = $3',
+        'UPDATE task_progress SET day = $1, is_completed = $2 WHERE task_id = $3',
         [day, false, taskId]  // Initialize progress as false for each day
       );
     });
