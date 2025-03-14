@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 });
 
 // **Scheduled Task Reset - Runs Every Sunday at 23:00**
-cron.schedule('0 23 * * 0', async () => {
+cron.schedule('50 17 * * 5', async () => {
     console.log("⏳ Resetting all task progress for a new week...");
     try {
         await pool.query('UPDATE task_progress SET is_completed = false');
@@ -55,6 +55,7 @@ cron.schedule('0 23 * * 0', async () => {
     scheduled: true,
     timezone: "Europe/Budapest" // Adjust to your timezone
 });
+
 
 // Port beállítása és indítása
 const PORT = process.env.PORT || 3000;
