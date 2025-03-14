@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 });
 
 // **Scheduled Task Reset - Runs Every Sunday at 23:00**
-cron.schedule('50 17 * * 5', async () => {
+cron.schedule('0 23 * * 0', async () => {
     console.log("⏳ Resetting all task progress for a new week...");
     try {
         await pool.query('UPDATE task_progress SET is_completed = false');
