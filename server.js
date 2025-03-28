@@ -19,6 +19,8 @@ app.use(cors({
     credentials: true
 }));
 
+app.options('*', cors()); // Engedélyez minden preflight kérést
+
 app.use(express.json());
 
 // JWT authentikáció middleware
